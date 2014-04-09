@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import cookielib
+import getpass
 import os
 import sys
 import time
@@ -142,13 +143,15 @@ class PayCheckFetcher:
             soup = self.returnToBrowse(year_soup)
 
 def main(argv):
-    # this should probably be more better
-    if (len(argv) != 2):
-        print "usage: python adp.py <username> <password>"
+    if (len(argv) != 1 and len(argv) != 2):
+        print "usage: python adp.py <username> [<password>]"
         return -1
 
     username = argv[0]
-    password = argv[1]
+    if len(argv) == 2:
+        password = argv[1]
+    else:
+        password = getpass.getpass()
 
     fetcher = PayCheckFetcher(username, password)
     fetcher.request()
@@ -156,4 +159,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
