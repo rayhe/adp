@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import cookielib
+import getpass
 import os
 import sys
 import time
@@ -94,16 +95,9 @@ class PayCheckFetcher:
                 result[date_key] = checklink['id']
         return result
 
-    # downloads a file maybe. note that this will break if
-    # adp adds a new check for the day you run this on. TODO: i should change
-    # the filename to a key with the check number
+    # downloads a file
     def downloadFile(self, url, filename):
         path = os.path.abspath(filename)
-        if (os.path.exists(path)):
-            # already downloaded this file, continue in our cron
-            print 'skipping (already downloaded): '+filename
-            return
-
         print 'downloading '+url+' to '+filename
         fd = open(path, 'wb')
         response = self.getResponse(url = url)
@@ -132,23 +126,33 @@ class PayCheckFetcher:
                     reverse=True)
             print 'found '+str(len(paychecks))+' checks in '+year
             for datekey, date_id in paychecks:
+                filename = datekey+'.pdf'
+                if os.path.exists(os.path.abspath(filename)):
+                    # note that this will break if adp adds a new check for
+                    # the day you run this on. TODO: i should change the
+                    # filename to a key with the check number
+                    print 'skipping (already downloaded): '+filename
+                    continue
+
                 inputs = self.getInputs(year_soup)
                 inputs[date_id] = date_id
                 check_soup = self.getSoupResponse(urllib.urlencode(inputs))
                 check_url = 'https://ipay.adp.com'+check_soup.iframe['src']
-                self.downloadFile(check_url, datekey+'.pdf')
+                self.downloadFile(check_url, filename)
 
             # 'browse' back to the original page
             soup = self.returnToBrowse(year_soup)
 
 def main(argv):
-    # this should probably be more better
-    if (len(argv) != 2):
-        print "usage: python adp.py <username> <password>"
+    if (len(argv) != 1 and len(argv) != 2):
+        print "usage: python adp.py <username> [<password>]"
         return -1
 
     username = argv[0]
-    password = argv[1]
+    if len(argv) == 2:
+        password = argv[1]
+    else:
+        password = getpass.getpass()
 
     fetcher = PayCheckFetcher(username, password)
     fetcher.request()
@@ -156,4 +160,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
