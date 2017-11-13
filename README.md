@@ -1,5 +1,7 @@
 # ADP Paycheck Downloader
 
+You should probably use https://github.com/andersonvom/adp-downloader instead as ADP has been redesigned after 9 years of the old site and this will no longer download your paychecks.
+
 ## TL;DR
 
 Python script to download paychecks
